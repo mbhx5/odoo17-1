@@ -4,8 +4,10 @@ services:
   # PostgreSQL service
   postgres:
     image: postgres:latest
+    ports:
+      - "5432:5432"
     environment:
-      POSTGRES_DB: odoo_db
+      POSTGRES_DB: odoo17
       POSTGRES_USER: odoo17
       POSTGRES_PASSWORD: password
     volumes:
@@ -16,7 +18,7 @@ services:
     image: dpage/pgadmin4:latest
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@pgadmin.com
-      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_DEFAULT_PASSWORD: adminpassword
     ports:
       - "5050:80"
     depends_on:
