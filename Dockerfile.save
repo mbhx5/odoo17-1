@@ -1,0 +1,85 @@
+# Use Ubuntu 22.04 as the base image
+FROM ubuntu:22.04
+
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Update and install system dependencies
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && apt-get install -y \
+        openssh-server \
+        fail2ban \
+        python3-pip \
+        python3-dev \
+        libxml2-dev \
+        libxslt1-dev \
+        zlib1g-dev \
+        libsasl2-dev \
+        libldap2-dev \
+        build-essential \
+        libssl-dev \
+        libffi-dev \
+        libmysqlclient-dev \
+        libjpeg-dev \
+        libpq-dev \
+        libjpeg8-dev \
+        liblcms2-dev \
+        libblas-dev \
+        libatlas-base-dev \
+        npm \
+    && ln -s /usr/bin/nodejs /usr/bin/node \
+    && npm install -g less less-plugin-clean-css \
+    && apt-get install -y node-less \
+    && apt-get install -y postgresql
+
+# Switch to the postgres user and create a database user
+USER postgres
+RUN createuser --createdb --username postgres --no-createrole --no-superuser --pwprompt odoo17 \
+    && psql -c "ALTER USER odoo17 WITH SUPERUSER;" \
+    && exit
+
+# Create the odoo17 system user and set up the home directory
+USER root
+RUN adduser --system --home=/opt/odoo17 --group odoo17
+
+# Install Git and clone the Odoo repository
+RUN apt-get install -y git \
+    && pip install cffi==1.5.2 \
+    && apt-get install -y python-cffi
+
+USER odoo17
+WORKDIR /opt/odoo17
+RUN git clone https://www.github.com/odoo/odoo --depth 1 --branch 17.0 --single-branch .
+
+# Install additional Python dependencies
+USER root
+COPY requirements.txt /opt/odoo17/requirements.txt
+RUN pip3 install -r /opt/odoo17/requirements.txt
+
+# Install wkhtmltopdf
+RUN apt-get -y install wkhtmltopdf
+
+# Set up Odoo configuration file
+COPY odoo.conf /etc/odoo17/odoo.conf
+RUN chown odoo17: /etc/odoo17/odoo.conf \
+    && chmod 640 /etc/odoo17/odoo.conf
+
+# Create log directory
+RUN mkdir /var/log/odoo \
+    && chown odoo17:root /var/log/odoo
+
+# Odoo service file
+COPY odoo.service /etc/systemd/system/odoo17.service
+RUN chmod 755 /etc/systemd/system/odoo17.service \
+    && chown root: /etc/systemd/system/odoo17.service
+
+# Set up entrypoint script
+COPY entrypoint.sh /opt/odoo17/entrypoint.sh
+RUN chmod +x /opt/odoo17/entrypoint.sh
+
+# Expose Odoo port
+EXPOSE 8069
+
+# Run Odoo
+CMD ["/opt/odoo17/entrypoint.sh"]
