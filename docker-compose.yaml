@@ -7,7 +7,7 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_DB: odoo17
+      POSTGRES_DB: postgres
       POSTGRES_USER: odoo17
       POSTGRES_PASSWORD: password
     volumes:
@@ -33,6 +33,12 @@ services:
       - "8069:8069"
     depends_on:
       - postgres
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: odoo17
+      DB_PASSWORD: password
+      DB_NAME: postgres
     volumes:
       - odoo_data:/opt/odoo17
 
