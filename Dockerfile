@@ -3,9 +3,12 @@ FROM ubuntu:22.04
 
 # Set non-interactive mode
 ENV DEBIAN_FRONTEND noninteractive
-
+ENV PYTHONDONTWRITEBYTECODE 1
 # Set the working directory to /opt/odoo17
 WORKDIR /opt/odoo17
+
+# Copy the Odoo files from your local machine to the container
+COPY . /opt/odoo17
 
 # Update and install dependencies
 RUN apt-get update && apt-get upgrade -y \
@@ -35,14 +38,8 @@ RUN chown odoo17: /etc/odoo17.conf && chmod 640 /etc/odoo17.conf
 
 # Create Odoo log directory
 RUN mkdir /var/log/odoo && chown odoo17:root /var/log/odoo
-
+RUN chmod +x /opt/odoo17/odoo-bin
 # Expose Odoo port
 EXPOSE 8069
 
-# Odoo service file
-USER root
-COPY odoo.service /etc/systemd/system/odoo17.service
-RUN chmod 755 /etc/systemd/system/odoo17.service && chown root: /etc/systemd/system/odoo17.service
-
-# Start Odoo
-CMD ["systemctl", "start", "odoo17.service"]
+CMD ["/opt/odoo17/odoo-bin", "-c", "/etc/odoo17.conf"]
