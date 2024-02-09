@@ -78,6 +78,16 @@ while ! validate_email "$email"; do
     read -p "Please enter a valid email address: " email
 done
 # *****************************************************************************
+# Ask whether to change secrets or continue with installation
+read -p "Do you want to change Postgres/Odoo Credentials? (yes/no): " change_secrets
+
+if [ "$change_secrets" == "yes" ]; then
+    # Execute secrets.sh script
+    ./secrets.sh
+else
+    echo -e "\e[1;33mRunning With Demo Credentials!\e[0m"
+fi
+# *****************************************************************************
 # Function to display a spinner
 spinner() {
     local pid=$1
