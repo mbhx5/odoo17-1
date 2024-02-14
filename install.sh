@@ -127,11 +127,49 @@ install_docker() {
     rm get-docker.sh
     echo  -e "\e[1;32mDocker installation completed.\e[0m"
 }
+# Function to install curl with a spinner
+install_nginx() {
+    echo -e "\e[1;33mInstalling nginx...\e[0m"  # Yellow color
+    sudo apt-get update > /dev/null
+    (sudo apt-get install -y nginx > /dev/null 2>&1) &
+    local spinner_pid=$!
+    spinner $spinner_pid
+    wait $spinner_pid
+    echo -e "\e[1;32mNginx installation completed.\e[0m"  # Green color
+    echo  # Add a space
+}
+# Function to install curl with a spinner
+install_certbot() {
+    echo -e "\e[1;33mInstalling Certbot...\e[0m"  # Yellow color
+    sudo apt-get update > /dev/null
+    (sudo apt-get install -y certbot python3-certbot-nginx > /dev/null 2>&1) &
+    local spinner_pid=$!
+    spinner $spinner_pid
+    wait $spinner_pid
+    echo -e "\e[1;32mCertbot installation completed.\e[0m"  # Green color
+    echo  # Add a space
+}
+cert_request() {
+    echo -e "\e[1;33mRequesting certificate from let's Enscrypt...\e[0m"  # Yellow color
+    (sudo certbot --nginx -d $domain --email $email --agree-tos > /dev/null 2>&1) &
+    local spinner_pid=$!
+    spinner $spinner_pid
+    wait $spinner_pid
+    echo -e "\e[1;32mCongrats !!! Certificate Obtained.\e[0m"  # Green color
+    echo  # Add a space
+}
 # *****************************************************************************
 # Run installation functions
 install_curl
 install_docker
-
+install_nginx
+install_certbot
+mkdir -p /var/www/ssl-proof/$domain/.well-known
+sudo cp ./nginx/nginx.conf /etc/nginx/sites-enabled/$domain.conf
+sudo sed -i "s/server_name .*;/server_name $domain;/g" /etc/nginx/sites-enabled/$domain.conf
+cert_request
+#sudo certbot --nginx -d $domain -i nginx --email $email --agree-tos
+sudo systemctl restart nginx.service
 # Install Docker Compose
 sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
@@ -165,3 +203,4 @@ echo -e "\e[1;33mCleaning up...\e[0m"  # Yellow color
 
 echo -e "\e[1;32mScript execution complete!\e[0m"  # Green color
 # *****************************************************************************
+
