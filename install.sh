@@ -165,7 +165,7 @@ install_docker
 install_nginx
 install_certbot
 mkdir -p /var/www/ssl-proof/$domain/.well-known
-sudo cp ./nginx/nginx.conf /etc/nginx/sites-enabled/$domain.conf
+sudo cp ./nginx.conf /etc/nginx/sites-enabled/$domain.conf
 sudo sed -i "s/server_name .*;/server_name $domain;/g" /etc/nginx/sites-enabled/$domain.conf
 cert_request
 #sudo certbot --nginx -d $domain -i nginx --email $email --agree-tos
