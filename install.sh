@@ -36,7 +36,7 @@ simple_progress_bar() {
 # Function to check if the domain belongs to the actual host machine's public IP
 check_domain_ip() {
     local domain=$1
-    local machine_ip=$(curl -s ifconfig.me)
+    local machine_ip=$(hostname -I | cut -d' ' -f1)
     local domain_ip=$(dig +short "$domain" | head -n 1)  # Only take the first IP if multiple are returned
 
     echo "Machine IP: $machine_ip"
